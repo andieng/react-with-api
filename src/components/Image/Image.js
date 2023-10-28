@@ -25,7 +25,16 @@ function Image({ src, alt, isLast, setNewPage }) {
     observer.observe(imgRef.current);
   }, [isLast]);
 
-  return <NextImage className={cx("image")} src={src} alt={alt} ref={imgRef} />;
+  return (
+    <NextImage
+      className={cx("image")}
+      src={src}
+      alt={alt}
+      ref={imgRef}
+      width={200}
+      height={200}
+    />
+  );
 }
 
 export default Image;
