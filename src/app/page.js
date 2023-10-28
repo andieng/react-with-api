@@ -1,95 +1,141 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import { useState, useEffect } from "react";
+import classnames from "classnames/bind";
+import { BiSearchAlt } from "react-icons/bi";
+import Loader from "@/components/Loader";
+import Image from "@/components/Image";
+import styles from "./page.module.scss";
+import axios from "axios";
+import { GET_URL, SEARCH_URL, UNSPLASH_AUTH_HEADER } from "@/lib/constants";
+
+const cx = classnames.bind(styles);
 
 export default function Home() {
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchValue, setSearchValue] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(false);
+  const [emptyText, setEmptyText] = useState("");
+  const imagesPerPage = 12;
+
+  useEffect(() => {
+    setIsLoading(true);
+    if (!isSearching) {
+      fetchImages();
+    } else {
+      fetchSearchResults();
+    }
+  }, [page]);
+
+  const fetchImages = () => {
+    axios
+      .get(GET_URL, {
+        params: {
+          page,
+          per_page: imagesPerPage,
+        },
+        headers: {
+          Authorization: UNSPLASH_AUTH_HEADER,
+        },
+      })
+      .then((res) => {
+        setImages((prev) => [...prev, ...res.data]);
+        if (!res.data) {
+          setIsEmpty(true);
+          setEmptyText("No images found");
+        } else {
+          setIsEmpty(false);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setIsEmpty(true);
+        setEmptyText("Error occurs when trying to fetch images");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const fetchSearchResults = () => {
+    axios
+      .get(SEARCH_URL, {
+        params: {
+          query: searchValue,
+          page,
+          per_page: imagesPerPage,
+        },
+        headers: {
+          Authorization: UNSPLASH_AUTH_HEADER,
+        },
+      })
+      .then((res) => {
+        setImages((prev) => [...prev, ...res.data.results]);
+        if (!res.data) {
+          setIsEmpty(true);
+          setEmptyText("No images found");
+        } else {
+          setIsEmpty(false);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setIsEmpty(true);
+        setEmptyText("Error occurs when trying to search images");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const handleSearch = () => {
+    setIsSearching(true);
+    setImages([]);
+    setPage(1);
+  };
+
+  const handleKeypress = (e) => {
+    if (e.which === 13) {
+      handleSearch();
+    }
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <main className={cx("main")}>
+      <div className={cx("header")}>
+        <h1 className={cx("title")}>React with API</h1>
+        <img src="/icon.png" className={cx("icon")} />
       </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      <div className={cx("search-wrapper")}>
+        <input
+          className={cx("search-box")}
+          placeholder="Search for images"
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyPress={handleKeypress}
         />
+        <button className={cx("search-btn")} onClick={handleSearch}>
+          <BiSearchAlt size={20} />
+        </button>
       </div>
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div className={cx("content")}>
+        <div className={cx("images-wrapper")}>
+          {images.map((image, index) => (
+            <Image
+              key={index}
+              src={image.urls.thumb}
+              alt={image.description ? image.description : image.id}
+              isLast={index === images.length - 1}
+              setNewPage={() => setPage(page + 1)}
+            />
+          ))}
+        </div>
+        {isLoading ? <Loader /> : ""}
+        {isEmpty ? <p className={cx("empty")}>{emptyText}</p> : ""}
       </div>
     </main>
-  )
+  );
 }
