@@ -1,3 +1,4 @@
+import NextImage from "next/image";
 import { useEffect, useRef } from "react";
 import classNames from "classnames/bind";
 import styles from "./Image.module.scss";
@@ -24,7 +25,7 @@ function Image({ src, alt, isLast, setNewPage }) {
     observer.observe(imgRef.current);
   }, [isLast]);
 
-  return <img className={cx("image")} src={src} alt={alt} ref={imgRef} />;
+  return <NextImage className={cx("image")} src={src} alt={alt} ref={imgRef} />;
 }
 
 export default Image;
