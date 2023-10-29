@@ -86,13 +86,15 @@ export default function Home() {
         setEmptyText("Error occurs when trying to search images");
       })
       .finally(() => {
-        setIsLoading(false);
+        setIsLoading((prev) => false);
       });
   };
 
   const handleSearch = () => {
     setIsSearching(true);
-    setImages([]);
+    setIsLoading((prev) => true);
+    setImages((prev) => []);
+    fetchSearchResults();
     setPage(1);
   };
 
