@@ -42,7 +42,7 @@ export default function Home() {
       })
       .then((res) => {
         setImages((prev) => [...prev, ...res.data]);
-        if (!res.data) {
+        if (res.data.length === 0) {
           setIsEmpty(true);
           setEmptyText("No images found");
         } else {
@@ -73,10 +73,11 @@ export default function Home() {
       })
       .then((res) => {
         setImages((prev) => [...prev, ...res.data.results]);
-        if (!res.data) {
+        if (res.data.results.length === 0) {
           setIsEmpty(true);
           setEmptyText("No images found");
         } else {
+          console.log(res.data.results);
           setIsEmpty(false);
         }
       })
